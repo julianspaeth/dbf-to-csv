@@ -1,27 +1,26 @@
 
-name: Build executables with Pyinstaller
+name: Package Application with Pyinstaller
 
 on:
   push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: ['windows-latest', 'ubuntu-latest, 'macos-latest']
+
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
 
-    - run: pip install -r requirements.txt pyinstaller
-    - run: pyinstaller your-code.py
-    # Optionally verify that it works (provided that it does not need user interaction)
-    - run: ./dist/your-code/your-code
+    - name: Package Application
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: src
+
     - uses: actions/upload-artifact@v2
       with:
-        path: dist/*
+        name: name-of-artifact
+        path: src/dist/windows
