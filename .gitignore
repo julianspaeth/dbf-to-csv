@@ -162,3 +162,5 @@ cython_debug/
 examples/
 .DS_Store
 .idea/
+
+config.env
