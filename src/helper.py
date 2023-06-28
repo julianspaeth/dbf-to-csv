@@ -12,12 +12,6 @@ def get_dbf_files(path):
     return dbf_files
 
 
-def convert_to_df(filepath: str):
-    dbf = dbfread.DBF(f'{filepath}', char_decode_errors='ignore')
-    dbf_df = pd.DataFrame(iter(dbf))
-
-    return dbf_df
-
 
 def write_csv(df: pd.DataFrame, filepath: str):
     filepath = os.path.splitext(filepath)[0]

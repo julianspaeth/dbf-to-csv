@@ -3,9 +3,11 @@ import threading
 from time import sleep
 
 import customtkinter
+import dbfread
 import pandas as pd
+from dbfread import MissingMemoFile
 
-from helper import get_dbf_files, convert_to_df, write_csv
+from helper import get_dbf_files, write_csv
 
 customtkinter.set_appearance_mode("system")
 customtkinter.set_default_color_theme("dark-blue")
@@ -55,18 +57,25 @@ class CustomApplication(customtkinter.CTk):
         files = get_dbf_files(self.directory_path)
         directory_path = os.path.dirname(files[0])
         parsing_errors = {}
-        parsing_successes = []
+        parsing_successes = {}
         writing_errors = {}
-        writing_successes = []
+        writing_successes = {}
         for file in files:
             self.label_2.configure(text="Convert to CSV: " + file)
             filename = os.path.basename(file)
             try:
-                df = convert_to_df(file)
-                parsing_successes.append(filename)
+                print(file, filename)
+                try:
+                    dbf = dbfread.DBF(f'{file}', char_decode_errors='ignore')
+                except MissingMemoFile as e:
+                    parsing_successes[f'{filename} [WARNING]'] = e
+                    print("Missing Memo File")
+                    dbf = dbfread.DBF(f'{file}', char_decode_errors='ignore', ignore_missing_memofile=True)
+                df = pd.DataFrame(iter(dbf))
+                parsing_successes[filename] = 'OK'
                 try:
                     write_csv(df, file)
-                    writing_successes.append(filename)
+                    writing_successes[filename] = 'OK'
                 except Exception as e:
                     writing_errors[filename] = e
             except Exception as e:
@@ -75,17 +84,20 @@ class CustomApplication(customtkinter.CTk):
 
         if len(parsing_errors.keys()) > 0:
             pd.DataFrame.from_dict(parsing_errors, orient='index').to_csv(f'{directory_path}/parsing_errors.csv',
-                                                                          index=False, header=False)
+                                                                          index=True, header=False)
         if len(writing_errors.keys()) > 0:
             pd.DataFrame.from_dict(writing_errors, orient='index').to_csv(f'{directory_path}/writing_errors.csv',
-                                                                          index=False, header=False)
+                                                                          index=True, header=False)
         if len(parsing_successes) > 0:
-            pd.DataFrame(parsing_successes).to_csv(f'{directory_path}/parsing_successes.csv', index=False, header=False)
+            pd.DataFrame.from_dict(parsing_successes, orient='index').to_csv(f'{directory_path}/parsing_successes.csv',
+                                                                             index=True, header=False)
         if len(writing_successes) > 0:
-            pd.DataFrame(writing_successes).to_csv(f'{directory_path}/writing_successes.csv', index=False, header=False)
+            pd.DataFrame.from_dict(writing_successes, orient='index').to_csv(f'{directory_path}/writing_successes.csv',
+                                                                             index=True, header=False)
 
         self.button_convert.configure(state='disabled')
         self.label_2.configure(text="Finished. Please check the logs.")
+        print('finished.')
 
 
 if __name__ == '__main__':
