@@ -170,3 +170,5 @@ examples/patient
 .idea/
 
 config.env
+
+exe

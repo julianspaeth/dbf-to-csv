@@ -31,8 +31,9 @@ class CustomApplication(customtkinter.CTk):
         self.button_choose_dir.pack(pady=10, padx=10)
         self.button_choose_dir.configure(text="Choose directory")
 
-        self.button_convert = customtkinter.CTkButton(master=self,
-                                                      command=threading.Thread(target=self.convert_to_csv).start)
+        convert_thread = threading.Thread(target=self.convert_to_csv)
+
+        self.button_convert = customtkinter.CTkButton(master=self, command=convert_thread.start)
         self.button_convert.pack(pady=10, padx=10)
         self.button_convert.configure(state="disabled")
         self.button_convert.configure(text="Convert to CSV")
@@ -73,8 +74,10 @@ class CustomApplication(customtkinter.CTk):
                     dbf = dbfread.DBF(f'{file}', char_decode_errors='ignore', ignore_missing_memofile=True)
                 df = pd.DataFrame(iter(dbf))
                 parsing_successes[filename] = 'OK'
-                try:
-                    write_csv(df, file)
+                try:                 
+                    csv_thread = threading.Thread(target=write_csv, args=(df, file))
+                    csv_thread.start()
+                    csv_thread.join()
                     writing_successes[filename] = 'OK'
                 except Exception as e:
                     writing_errors[filename] = e
