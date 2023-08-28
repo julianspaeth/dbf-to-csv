@@ -74,7 +74,7 @@ class CustomApplication(customtkinter.CTk):
                     dbf = dbfread.DBF(f'{file}', char_decode_errors='ignore', ignore_missing_memofile=True)
                 df = pd.DataFrame(iter(dbf))
                 parsing_successes[filename] = 'OK'
-                try:                 
+                try:
                     csv_thread = threading.Thread(target=write_csv, args=(df, file))
                     csv_thread.start()
                     csv_thread.join()

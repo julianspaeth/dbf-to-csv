@@ -12,7 +12,6 @@ def get_dbf_files(path):
     return dbf_files
 
 
-
 def write_csv(df: pd.DataFrame, filepath: str):
     filepath = os.path.splitext(filepath)[0]
     df.to_csv(f'{filepath}.tsv', index=False, sep='\t', na_rep='NULL', errors='replace')
